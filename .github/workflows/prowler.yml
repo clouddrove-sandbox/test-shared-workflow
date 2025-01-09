@@ -63,15 +63,15 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v3
 
-      - name: Install sanp
+      - name: Install pip
         run: |
           sudo apt update
-          sudo apt install snapd
+          sudo apt install -y python3 python3-pip
 
       - name: Install Prowler
         run: |
-          sudo apt update
-          sudo snap install prowler
+          python3 -m pip install --upgrade pip
+          pip3 install prowler
 
       - name: Authenticate with Google Cloud
         if: ${{ inputs.cloud_provider == 'gcp' }}
