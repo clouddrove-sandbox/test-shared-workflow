@@ -57,7 +57,7 @@ on:
 
 jobs:
   prowler:
-    runs-on: [ubuntu-latest]
+    runs-on: ubuntu-latest
 
     steps:
       - name: Check out code
@@ -65,16 +65,11 @@ jobs:
 
       - name: Install dependencies
         run: |
-          if [ "$RUNNER_OS" == "macOS" ]; then
-            /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-            brew install prowler
-          elif [ "$RUNNER_OS" == "Linux" ]; then
-            sudo apt update
-            sudo apt install -y software-properties-common
-            sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
-            sudo apt update
-            sudo apt install -y prowler
-          fi
+          sudo apt update
+          sudo apt install -y software-properties-common
+          sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+          sudo apt update
+          sudo apt install -y prowler
 
       - name: Authenticate with Google Cloud
         if: ${{ inputs.cloud_provider == 'gcp' }}
