@@ -63,13 +63,15 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v3
 
-      - name: Install dependencies
+      - name: Install sanp
         run: |
           sudo apt update
-          sudo apt install -y software-properties-common
-          sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+          sudo apt install snapd
+
+      - name:
+        run: |
           sudo apt update
-          sudo apt install -y prowler
+          sudo snap install prowler
 
       - name: Authenticate with Google Cloud
         if: ${{ inputs.cloud_provider == 'gcp' }}
