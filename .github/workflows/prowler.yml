@@ -57,7 +57,7 @@ on:
 
 jobs:
   prowler:
-    runs-on: [macos-latest, ubuntu-latest]
+    runs-on: [ubuntu-latest]
 
     steps:
       - name: Check out code
