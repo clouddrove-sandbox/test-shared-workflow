@@ -134,13 +134,21 @@
             run: |
               steampipe service start
     
+          # - name: Run Terraform AWS Compliance control
+          #   uses: turbot/powerpipe-action-check@v1
+          #   with:
+          #     mod-url: ${{ inputs.mod_url }}
+          #     controls: ${{ inputs.controls }}
+          #     benchmarks: ${{ inputs.benchmarks }}
+          #     github-token: ${{ secrets.TOKEN }}
+
           - name: Run Terraform AWS Compliance control
             uses: turbot/powerpipe-action-check@v1
             with:
               mod-url: ${{ inputs.mod_url }}
               controls: ${{ inputs.controls }}
               benchmarks: ${{ inputs.benchmarks }}
-              github-token: ${{ secrets.TOKEN }}
+              github-token: ${{ github.token }}
     
           - name: Read generated markdown file
             id: read_md_file
