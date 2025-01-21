@@ -85,8 +85,6 @@
           SERVICE_ACCOUNT:
             required: false
             description: 'The service account to be used'
-
-    permissions: write-all
     
     jobs:
       powerpipe:
