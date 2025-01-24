@@ -98,6 +98,17 @@
             if: ${{ inputs.provider == 'aws' }}
             id: login-ecr
             uses: aws-actions/amazon-ecr-login@v2
+
+          - name: Check if ECR repository exists
+            if: ${{ inputs.provider == 'aws' }}
+            run: |
+              aws ecr describe-repositories --region ${{ inputs.aws_region }} --query 'repositories[*].repositoryName' | grep -w ${{ inputs.ECR_REPOSITORY }} || echo "Repository does not exist"
+
+          - name: Debug ECR Registry
+            if: ${{ inputs.provider == 'aws' }}
+            run: echo "ECR Registry is $ECR_REGISTRY"
+            env:
+              ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
     
           - name: Push docker image to Amazon ECR
             if: ${{ inputs.provider == 'aws' }}
