@@ -36,6 +36,9 @@ on:
       BUILD_ROLE:
         required: false
         description: 'AWS OIDC role for AWS authentication.'
+      PROWLER_ROLE_ARN:
+        required: false
+        description: 'AWS IAM role for running prowler.'
       AWS_ACCESS_KEY_ID:
         required: false
         description: 'AWS Access Key ID'
