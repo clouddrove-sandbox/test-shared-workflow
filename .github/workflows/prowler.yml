@@ -104,12 +104,20 @@ jobs:
           -o ${{ github.workspace }}/report/
         continue-on-error: true
 
-      - name: Run Prowler for AWS
-        if: ${{ inputs.cloud_provider == 'aws' }}
-        id: prowler-aws
+      - name: Running Prowler for AWS
+        env:
+          ACCOUNT_ID: ${{ secrets.TARGET_ACCOUNT_ID }}
         run: |
-          prowler aws -o ${{ github.workspace }}/report/
-        continue-on-error: true
+          for ACCOUNTID in $ACCOUNT_ID; do
+          {
+            echo $ACCOUNTID
+            prowler aws \
+              --role ${{ secrets.PROWLER_ROLE_ARN }} \
+              --output-directory /home/runner/work/prowler/prowler/output \
+              --output-modes html csv json-asff \
+              --ignore-exit-code-3
+          }
+          done
 
       - name: Run Prowler for Azure
         if: ${{ inputs.cloud_provider == 'azure' }}
@@ -121,9 +129,19 @@ jobs:
           prowler azure --sp-env-auth -o ${{ github.workspace }}/report/
         continue-on-error: true
 
-      - name: Upload report directory
+      - name: Upload Artifact
+        if: env.ENABLE_S3_UPLOAD == 'false'
         uses: actions/upload-artifact@v4
         with:
-          name: compliance-report
-          path: ${{ github.workspace }}/report/
+          name: prowler-reports
+          path: /home/runner/work/prowler/prowler/output/
+          retention-days: 1
+
+      - name: Upload Prowler Results to AWS S3
+        if: env.ENABLE_S3_UPLOAD == 'true'
+        run: |
+          aws s3 cp /home/runner/work/prowler/prowler/output/ s3://${{ secrets.S3_BUCKET_NAME }}/ --recursive
+
+    env:
+      ENABLE_S3_UPLOAD: ${{ secrets.ENABLE_S3_UPLOAD }}
 ...
