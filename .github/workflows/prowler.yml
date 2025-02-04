@@ -88,7 +88,7 @@ jobs:
               --output-directory /home/runner/work/prowler/prowler/output \
               --output-modes html csv json-asff \
               --ignore-exit-code-3
-              aws s3 cp /home/runner/work/prowler/prowler/output/ "s3://${{ secrets.S3_BUCKET_NAME }}/" --recursive
+              aws s3 cp /home/runner/work/prowler/prowler/output/ "s3://prowler-test-bucket/" --recursive
           }
           done
 
