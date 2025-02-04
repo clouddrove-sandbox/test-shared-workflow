@@ -80,7 +80,7 @@ jobs:
         env:
           ACCOUNT_ID: ${{ secrets.TARGET_ACCOUNT_ID }}
         run: |
-          for ACCOUNTID in 851725370590 924144197303; do
+          for ACCOUNTID in 924144197303 851725370590; do
           {
             echo $ACCOUNTID
             prowler aws \
