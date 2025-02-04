@@ -39,6 +39,9 @@ on:
       AWS_SESSION_TOKEN:
         required: false
         description: 'AWS Session Token'
+      ENABLE_S3_UPLOAD:
+        required: false
+        description: 'Enable this to upload the reports to S3 bucket.'
 
 jobs:
   prowler:
