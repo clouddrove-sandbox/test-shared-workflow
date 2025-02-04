@@ -45,6 +45,9 @@ on:
       ACCOUNT_ID:
         required: false
         description: 'All aws account ids you want to scan.'
+      S3_BUCKET_NAME:
+        required: false
+        description: 'S3 bucket to store the prowler reports.'
 
 jobs:
   prowler:
