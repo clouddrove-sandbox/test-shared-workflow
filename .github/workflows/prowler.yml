@@ -42,6 +42,9 @@ on:
       ENABLE_S3_UPLOAD:
         required: false
         description: 'Enable this to upload the reports to S3 bucket.'
+      TARGET_ACCOUNT_ID:
+        required: false
+        description: 'All aws account ids you want to scan.'
 
 jobs:
   prowler:
