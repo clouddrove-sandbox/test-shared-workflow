@@ -84,6 +84,22 @@ jobs:
             fi
           done
 
+      - name: Enable Prowler Integration with Security Hub
+        run: |
+          for ACCOUNTID in ${{ secrets.TARGET_ACCOUNT_ID }}; do
+            # Check existing integrations
+            EXISTING_INTEGRATIONS=$(aws securityhub list-enabled-products-for-import --region eu-west-1 --query 'ProductSubscriptions' --output text)
+              
+            if [[ $EXISTING_INTEGRATIONS != *"prowler/prowler"* ]]; then
+              aws securityhub enable-import-findings-for-product \
+                --region eu-west-1 \
+                --product-arn arn:aws:securityhub:eu-west-1::product/prowler/prowler
+              echo "Prowler integration enabled for account $ACCOUNTID"
+            else
+              echo "Prowler is already integrated for account $ACCOUNTID"
+            fi
+          done
+
   prowler:
     needs: enable-security-hub
     runs-on: ubuntu-latest
