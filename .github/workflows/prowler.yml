@@ -75,9 +75,13 @@ jobs:
       - name: Enable Security Hub
         run: |
           for ACCOUNTID in ${{ secrets.TARGET_ACCOUNT_ID }}; do
-            aws securityhub enable-security-hub \
-              --region ${{ inputs.aws_region }} \
-              --enable-default-standards
+            if ! aws securityhub describe-hub --region eu-west-1 2>/dev/null; then
+              aws securityhub enable-security-hub \
+                --region eu-west-1 \
+                --enable-default-standards
+            else
+              echo "Security Hub already enabled for account $ACCOUNTID"
+            fi
           done
 
   prowler:
