@@ -130,10 +130,10 @@ jobs:
           role-duration-seconds: ${{ inputs.role_duration_seconds }}
           role-skip-session-tagging: true
 
-      - name: Create Monthly Folder
-        run: |
-          export MONTH_NAME=$(date +%B)
-          mkdir -p /home/runner/work/prowler/prowler/output/$MONTH_NAME
+      # - name: Create Monthly Folder
+      #   run: |
+      #     export MONTH_NAME=$(date +%B)
+      #     mkdir -p /home/runner/work/prowler/prowler/output/$MONTH_NAME
 
       - name: Running Prowler for AWS
         env:
@@ -147,7 +147,6 @@ jobs:
               --role arn:aws:iam::${ACCOUNTID}:role/${{ secrets.PROWLER_ROLE_NAME }} \
               --output-directory /home/runner/work/prowler/prowler/output/$MONTH_NAME \
               --output-modes html csv json-asff \
-              --security-hub \
               --ignore-exit-code-3
           }
           done
