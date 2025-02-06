@@ -63,45 +63,45 @@ on:
         description: 'The slack channel webhook URL to send the notification'
 
 jobs:
-  enable-security-hub:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ secrets.BUILD_ROLE }}
-          aws-region: ${{ inputs.aws_region }}
+  # enable-security-hub:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Configure AWS Credentials
+  #       uses: aws-actions/configure-aws-credentials@v4
+  #       with:
+  #         role-to-assume: ${{ secrets.BUILD_ROLE }}
+  #         aws-region: ${{ inputs.aws_region }}
 
-      - name: Enable Security Hub
-        run: |
-          for ACCOUNTID in ${{ secrets.TARGET_ACCOUNT_ID }}; do
-            if ! aws securityhub describe-hub --region eu-west-1 2>/dev/null; then
-              aws securityhub enable-security-hub \
-                --region eu-west-1 \
-                --enable-default-standards
-            else
-              echo "Security Hub already enabled for account $ACCOUNTID"
-            fi
-          done
+  #     - name: Enable Security Hub
+  #       run: |
+  #         for ACCOUNTID in ${{ secrets.TARGET_ACCOUNT_ID }}; do
+  #           if ! aws securityhub describe-hub --region eu-west-1 2>/dev/null; then
+  #             aws securityhub enable-security-hub \
+  #               --region eu-west-1 \
+  #               --enable-default-standards
+  #           else
+  #             echo "Security Hub already enabled for account $ACCOUNTID"
+  #           fi
+  #         done
 
-      - name: Enable Prowler Integration with Security Hub
-        run: |
-          for ACCOUNTID in ${{ secrets.TARGET_ACCOUNT_ID }}; do
-            # Check existing integrations
-            EXISTING_INTEGRATIONS=$(aws securityhub list-enabled-products-for-import --region eu-west-1 --query 'ProductSubscriptions' --output text)
+  #     - name: Enable Prowler Integration with Security Hub
+  #       run: |
+  #         for ACCOUNTID in ${{ secrets.TARGET_ACCOUNT_ID }}; do
+  #           # Check existing integrations
+  #           EXISTING_INTEGRATIONS=$(aws securityhub list-enabled-products-for-import --region eu-west-1 --query 'ProductSubscriptions' --output text)
               
-            if [[ $EXISTING_INTEGRATIONS != *"prowler/prowler"* ]]; then
-              aws securityhub enable-import-findings-for-product \
-                --region eu-west-1 \
-                --product-arn arn:aws:securityhub:eu-west-1::product/prowler/prowler
-              echo "Prowler integration enabled for account $ACCOUNTID"
-            else
-              echo "Prowler is already integrated for account $ACCOUNTID"
-            fi
-          done
+  #           if [[ $EXISTING_INTEGRATIONS != *"prowler/prowler"* ]]; then
+  #             aws securityhub enable-import-findings-for-product \
+  #               --region eu-west-1 \
+  #               --product-arn arn:aws:securityhub:eu-west-1::product/prowler/prowler
+  #             echo "Prowler integration enabled for account $ACCOUNTID"
+  #           else
+  #             echo "Prowler is already integrated for account $ACCOUNTID"
+  #           fi
+  #         done
 
   prowler:
-    needs: enable-security-hub
+    # needs: enable-security-hub
     runs-on: ubuntu-latest
 
     steps:
@@ -160,17 +160,24 @@ jobs:
           path: /home/runner/work/prowler/prowler/output/
           retention-days: 1
 
+      # - name: Upload Prowler Results to AWS S3
+      #   if: ${{ inputs.enable_s3_upload == true }}
+      #   run: |
+      #     export MONTH_NAME=$(date +%B)
+      #     if [ -d "/home/runner/work/prowler/prowler/output/$MONTH_NAME" ]; then
+      #       echo "Uploading reports to S3..."
+      #       aws s3 cp /home/runner/work/prowler/prowler/output/$MONTH_NAME/ s3://${{ secrets.S3_BUCKET_NAME }}/$MONTH_NAME/ --recursive
+      #     else
+      #       echo "Error: Output directory does not exist!"
+      #       exit 1
+      #     fi
+
       - name: Upload Prowler Results to AWS S3
         if: ${{ inputs.enable_s3_upload == true }}
         run: |
-          export MONTH_NAME=$(date +%B)
-          if [ -d "/home/runner/work/prowler/prowler/output/$MONTH_NAME" ]; then
-            echo "Uploading reports to S3..."
-            aws s3 cp /home/runner/work/prowler/prowler/output/$MONTH_NAME/ s3://${{ secrets.S3_BUCKET_NAME }}/$MONTH_NAME/ --recursive
-          else
-            echo "Error: Output directory does not exist!"
-            exit 1
-          fi
+          YEAR=$(date +'%Y')
+          MONTH=$(date +'%m')
+          aws s3 cp /home/runner/work/prowler/prowler/output/ s3://${{ secrets.S3_BUCKET_NAME }}/$YEAR/$MONTH/ --recursive
 
       - name: 'Notify Slack'
         uses: clouddrove/action-slack-notify@1
