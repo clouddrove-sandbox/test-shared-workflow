@@ -76,8 +76,8 @@ jobs:
         run: |
           for ACCOUNTID in ${{ secrets.TARGET_ACCOUNT_ID }}; do
             aws securityhub enable-security-hub \
-              --enable-default-standards \
-              --account-id $ACCOUNTID
+              --region ${{ inputs.aws_region }} \
+              --enable-default-standards
           done
 
   prowler:
