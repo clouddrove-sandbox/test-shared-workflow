@@ -63,10 +63,25 @@ on:
         description: 'The slack channel webhook URL to send the notification'
 
 jobs:
+  enable-security-hub:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.BUILD_ROLE }}
+          aws-region: ${{ inputs.aws_region }}
+
+      - name: Enable Security Hub
+        run: |
+          for ACCOUNTID in ${{ secrets.TARGET_ACCOUNT_ID }}; do
+            aws securityhub enable-security-hub \
+              --enable-default-standards \
+              --account-id $ACCOUNTID
+          done
+
   prowler:
-    env:
-      ENABLE_S3_UPLOAD: ${{ secrets.ENABLE_S3_UPLOAD }}
-      ENABLE_SLACK_NOTIFICATION: ${{ secrets.ENABLE_SLACK_NOTIFICATION }}
+    needs: enable-security-hub
     runs-on: ubuntu-latest
 
     steps:
@@ -112,6 +127,7 @@ jobs:
               --role arn:aws:iam::${ACCOUNTID}:role/${{ secrets.PROWLER_ROLE_NAME }} \
               --output-directory /home/runner/work/prowler/prowler/output/$MONTH_NAME \
               --output-modes html csv json-asff \
+              --security-hub \
               --ignore-exit-code-3
           }
           done
