@@ -150,7 +150,7 @@ jobs:
       #     aws s3 cp /home/runner/work/prowler/prowler/output/ s3://${{ secrets.S3_BUCKET_NAME }}/ --recursive
 
       - name: Upload Prowler Results to AWS S3
-        if: env.ENABLE_S3_UPLOAD == 'true'
+        if: ${{ inputs.enable_s3_upload == true }}
         run: |
           export MONTH_NAME=$(date +%B)
           if [ -d "/home/runner/work/prowler/prowler/output/$MONTH_NAME" ]; then
