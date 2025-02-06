@@ -118,10 +118,16 @@ jobs:
           path: /home/runner/work/prowler/prowler/output/
           retention-days: 1
 
+      # - name: Upload Prowler Results to AWS S3
+      #   if: ${{ inputs.enable_s3_upload == true }}
+      #   run: |
+      #     aws s3 cp /home/runner/work/prowler/prowler/output/ s3://${{ secrets.S3_BUCKET_NAME }}/ --recursive
+
       - name: Upload Prowler Results to AWS S3
         if: ${{ inputs.enable_s3_upload == true }}
         run: |
-          aws s3 cp /home/runner/work/prowler/prowler/output/ s3://${{ secrets.S3_BUCKET_NAME }}/ --recursive
+          export MONTH_NAME=$(date +%B)
+          aws s3 cp /home/runner/work/prowler/prowler/output/$MONTH_NAME/ s3://${{ secrets.S3_BUCKET_NAME }}/$MONTH_NAME/ --recursive
 
       - name: 'Notify Slack'
         uses: clouddrove/action-slack-notify@1
