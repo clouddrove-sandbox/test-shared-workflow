@@ -95,20 +95,46 @@ jobs:
           role-duration-seconds: ${{ inputs.role_duration_seconds }}
           role-skip-session-tagging: true
 
+      # - name: Running Prowler for AWS
+      #   env:
+      #     ACCOUNT_ID: ${{ secrets.TARGET_ACCOUNT_ID }}
+      #   run: |
+      #     for ACCOUNTID in $ACCOUNT_ID; do
+      #     {
+      #       echo $ACCOUNTID
+      #       prowler aws \
+      #         --role arn:aws:iam::${ACCOUNTID}:role/${{ secrets.PROWLER_ROLE_NAME }} \
+      #         --output-directory /home/runner/work/prowler/prowler/output \
+      #         --output-modes html csv json-asff \
+      #         --ignore-exit-code-3
+      #     }
+      #     done
+
+      - name: Create Monthly Folder
+        run: |
+          export MONTH_NAME=$(date +%B)
+          mkdir -p /home/runner/work/prowler/prowler/output/$MONTH_NAME
+          echo "Created directory: /home/runner/work/prowler/prowler/output/$MONTH_NAME"
+
       - name: Running Prowler for AWS
         env:
           ACCOUNT_ID: ${{ secrets.TARGET_ACCOUNT_ID }}
         run: |
+          export MONTH_NAME=$(date +%B)
           for ACCOUNTID in $ACCOUNT_ID; do
           {
-            echo $ACCOUNTID
+            echo "Scanning AWS Account: $ACCOUNTID"
             prowler aws \
               --role arn:aws:iam::${ACCOUNTID}:role/${{ secrets.PROWLER_ROLE_NAME }} \
-              --output-directory /home/runner/work/prowler/prowler/output \
+              --output-directory /home/runner/work/prowler/prowler/output/$MONTH_NAME \
               --output-modes html csv json-asff \
               --ignore-exit-code-3
           }
           done
+
+          # Verify that files were created
+          echo "Checking output directory contents:"
+          ls -l /home/runner/work/prowler/prowler/output/$MONTH_NAME
 
       - name: Upload Artifact
         if: ${{ inputs.enable_s3_upload == false }}
@@ -124,10 +150,16 @@ jobs:
       #     aws s3 cp /home/runner/work/prowler/prowler/output/ s3://${{ secrets.S3_BUCKET_NAME }}/ --recursive
 
       - name: Upload Prowler Results to AWS S3
-        if: ${{ inputs.enable_s3_upload == true }}
+        if: env.ENABLE_S3_UPLOAD == 'true'
         run: |
           export MONTH_NAME=$(date +%B)
-          aws s3 cp /home/runner/work/prowler/prowler/output/$MONTH_NAME/ s3://${{ secrets.S3_BUCKET_NAME }}/$MONTH_NAME/ --recursive
+          if [ -d "/home/runner/work/prowler/prowler/output/$MONTH_NAME" ]; then
+            echo "Uploading reports to S3..."
+            aws s3 cp /home/runner/work/prowler/prowler/output/$MONTH_NAME/ s3://${{ secrets.S3_BUCKET_NAME }}/$MONTH_NAME/ --recursive
+          else
+            echo "Error: Output directory does not exist!"
+            exit 1
+          fi
 
       - name: 'Notify Slack'
         uses: clouddrove/action-slack-notify@1
